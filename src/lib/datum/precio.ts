@@ -23,8 +23,8 @@ export function factorCalidad(puntaje: number): number {
 
 /** Meses entre dos fechas "AAAA-MM" o "AAAA-MM-DD" */
 export function mesesEntre(desde: string, hasta: string): number {
-  const [a1, m1] = desde.split("-").map(Number);
-  const [a2, m2] = hasta.split("-").map(Number);
+  const [a1 = 0, m1 = 1] = desde.split("-").map(Number);
+  const [a2 = 0, m2 = 1] = hasta.split("-").map(Number);
   return (a2 - a1) * 12 + (m2 - m1);
 }
 

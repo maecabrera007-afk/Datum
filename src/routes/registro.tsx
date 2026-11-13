@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/registro")({
   validateSearch: (s: Record<string, unknown>): { rol: Rol } => ({
-    rol: s.rol === "comprador" ? "comprador" : "vendedor",
+    rol: s["rol"] === "comprador" ? "comprador" : "vendedor",
   }),
   head: () => ({
     meta: [
@@ -202,7 +202,7 @@ function Campo({
 }: {
   id: string;
   etiqueta: string;
-  ayuda?: string;
+  ayuda?: string | undefined;
   children: React.ReactNode;
 }) {
   return (

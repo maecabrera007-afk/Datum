@@ -39,9 +39,9 @@ describe("Reglas de negocio", () => {
     expect(factorEscasez(5)).toBe(1.0);
   });
 
-  it("los 10 datasets de ejemplo cumplen precio (20.000–150.000), puntaje (72–98) y fórmula", () => {
+  it("los 16 datasets de ejemplo cumplen precio (20.000–150.000), puntaje (72–98) y fórmula", () => {
     const lista = datasets as Dataset[];
-    expect(lista).toHaveLength(10);
+    expect(lista).toHaveLength(16);
     for (const d of lista) {
       expect(d.precio).toBeGreaterThanOrEqual(20000);
       expect(d.precio).toBeLessThanOrEqual(150000);

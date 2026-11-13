@@ -10,12 +10,26 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as PanelRouteImport } from './routes/panel'
 import { Route as RegistroRouteImport } from './routes/registro'
 import { Route as SubirRouteImport } from './routes/subir'
+import { Route as CatalogoIndexRouteImport } from './routes/catalogo.index'
+import { Route as CatalogoIdRouteImport } from './routes/catalogo.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PanelRoute = PanelRouteImport.update({
+  id: '/panel',
+  path: '/panel',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegistroRoute = RegistroRouteImport.update({
@@ -28,35 +42,83 @@ const SubirRoute = SubirRouteImport.update({
   path: '/subir',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CatalogoIndexRoute = CatalogoIndexRouteImport.update({
+  id: '/catalogo/',
+  path: '/catalogo/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CatalogoIdRoute = CatalogoIdRouteImport.update({
+  id: '/catalogo/$id',
+  path: '/catalogo/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/panel': typeof PanelRoute
   '/registro': typeof RegistroRoute
   '/subir': typeof SubirRoute
+  '/catalogo/$id': typeof CatalogoIdRoute
+  '/catalogo/': typeof CatalogoIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/panel': typeof PanelRoute
   '/registro': typeof RegistroRoute
   '/subir': typeof SubirRoute
+  '/catalogo/$id': typeof CatalogoIdRoute
+  '/catalogo': typeof CatalogoIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/panel': typeof PanelRoute
   '/registro': typeof RegistroRoute
   '/subir': typeof SubirRoute
+  '/catalogo/$id': typeof CatalogoIdRoute
+  '/catalogo/': typeof CatalogoIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/registro' | '/subir'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/panel'
+    | '/registro'
+    | '/subir'
+    | '/catalogo/$id'
+    | '/catalogo/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/registro' | '/subir'
-  id: '__root__' | '/' | '/registro' | '/subir'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/panel'
+    | '/registro'
+    | '/subir'
+    | '/catalogo/$id'
+    | '/catalogo'
+  id:
+    | '__root__'
+    | '/'
+    | '/dashboard'
+    | '/panel'
+    | '/registro'
+    | '/subir'
+    | '/catalogo/$id'
+    | '/catalogo/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DashboardRoute: typeof DashboardRoute
+  PanelRoute: typeof PanelRoute
   RegistroRoute: typeof RegistroRoute
   SubirRoute: typeof SubirRoute
+  CatalogoIdRoute: typeof CatalogoIdRoute
+  CatalogoIndexRoute: typeof CatalogoIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -66,6 +128,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/panel': {
+      id: '/panel'
+      path: '/panel'
+      fullPath: '/panel'
+      preLoaderRoute: typeof PanelRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/registro': {
@@ -82,13 +158,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SubirRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/catalogo/': {
+      id: '/catalogo/'
+      path: '/catalogo'
+      fullPath: '/catalogo/'
+      preLoaderRoute: typeof CatalogoIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/catalogo/$id': {
+      id: '/catalogo/$id'
+      path: '/catalogo/$id'
+      fullPath: '/catalogo/$id'
+      preLoaderRoute: typeof CatalogoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DashboardRoute: DashboardRoute,
+  PanelRoute: PanelRoute,
   RegistroRoute: RegistroRoute,
   SubirRoute: SubirRoute,
+  CatalogoIdRoute: CatalogoIdRoute,
+  CatalogoIndexRoute: CatalogoIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

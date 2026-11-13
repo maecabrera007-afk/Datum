@@ -7,11 +7,13 @@
 export type Rol = "vendedor" | "comprador";
 
 /** Sector del negocio */
-export type Sector = "tienda_barrio" | "restaurante";
+export type Sector = "tienda_barrio" | "restaurante" | "cafe" | "panaderia";
 
 export const NOMBRES_SECTOR: Record<Sector, string> = {
   tienda_barrio: "Tienda de barrio",
   restaurante: "Restaurante",
+  cafe: "Café",
+  panaderia: "Panadería",
 };
 
 /** Usuario registrado (simulado, guardado en localStorage) */

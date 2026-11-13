@@ -47,11 +47,13 @@ const OPCIONES: Papa.ParseConfig = {
 /** Lee un archivo CSV del computador o celular. */
 export function leerCsv(archivo: File): Promise<ResultadoLectura> {
   return new Promise((resolver) => {
-    Papa.parse<FilaCruda>(archivo, {
-      ...OPCIONES,
+    Papa.parse<FilaCruda, File>(archivo, {
+      header: true,
+      skipEmptyLines: true,
+      transformHeader: (h: string) => h.replace(/^\uFEFF/, "").trim(),
       complete: (r) => resolver(procesarResultado(r)),
       error: () => resolver({ ok: false, error: "No pudimos leer el archivo. ¿Está dañado?" }),
-    } as Papa.ParseConfig<FilaCruda, File>);
+    });
   });
 }
 

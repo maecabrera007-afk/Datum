@@ -181,7 +181,7 @@ function PasoSubir({
   cargando: boolean;
   alElegir: (f: File | undefined) => void;
   usarEjemplo: () => void;
-  trabajoPrevio?: string;
+  trabajoPrevio?: string | undefined;
 }) {
   const entrada = useRef<HTMLInputElement>(null);
   const [encima, setEncima] = useState(false);
@@ -294,7 +294,7 @@ function PasoMapear({
         <TablaSimple
           titulo="Primeras 10 filas del archivo"
           columnas={lectura.encabezados}
-          filas={lectura.filas.slice(0, 10).map((f) => lectura.encabezados.map((e) => f[e]))}
+          filas={lectura.filas.slice(0, 10).map((f) => lectura.encabezados.map((e) => f[e] ?? null))}
         />
       </section>
 
@@ -381,14 +381,14 @@ function PasoLimpiar({
 
   const primeras = limpieza.filas.slice(0, 10);
   const antes = primeras.map((_, i) => {
-    const cruda = lectura.filas[limpieza.origen[i]];
+    const cruda = lectura.filas[limpieza.origen[i] ?? -1] ?? {};
     return usadas.map((c) => {
       const col = origenDe(c);
-      return col ? cruda[col] : "";
+      return col ? (cruda[col] ?? "") : "";
     });
   });
   const despues = primeras.map((f) => usadas.map((c) => (f[c] === null ? null : String(f[c]))));
-  const cambio = (i: number, j: number) => (antes[i][j] ?? "") !== (despues[i][j] ?? "");
+  const cambio = (i: number, j: number) => (antes[i]?.[j] ?? "") !== (despues[i]?.[j] ?? "");
 
   const tarjetas = [
     { n: r.fechasNormalizadas, t: "fechas pasadas a AAAA-MM-DD" },

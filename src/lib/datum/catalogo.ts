@@ -3,9 +3,9 @@
 // =============================================================
 import datasetsEjemplo from "@/data/datasets.json";
 import { CLAVES, guardar, leer } from "./almacen";
-import type { Dataset, EstadoDataset, Sector } from "./tipos";
+import { NOMBRES_SECTOR, type Dataset, type EstadoDataset, type Sector } from "./tipos";
 
-/** Los 10 datasets ficticios de ejemplo */
+/** Los 16 datasets ficticios de ejemplo */
 export const EJEMPLOS = datasetsEjemplo as Dataset[];
 
 /** Comunas de Medellín que usamos en la plataforma */
@@ -27,42 +27,78 @@ export function buscarDataset(id: string, misDatasets: Dataset[]): Dataset | und
 
 // ---------------- Filtros ----------------
 
-/** Periodos para filtrar: semestres */
+/** Periodos para filtrar: datasets con datos en los últimos N meses */
 export const PERIODOS = [
-  { valor: "2025-S2", etiqueta: "2.º semestre 2025", inicio: "2025-07", fin: "2025-12" },
-  { valor: "2026-S1", etiqueta: "1.er semestre 2026", inicio: "2026-01", fin: "2026-06" },
-  { valor: "2026-S2", etiqueta: "2.º semestre 2026", inicio: "2026-07", fin: "2026-12" },
+  { valor: "3", etiqueta: "Últimos 3 meses", meses: 3 },
+  { valor: "6", etiqueta: "Últimos 6 meses", meses: 6 },
+  { valor: "12", etiqueta: "Últimos 12 meses", meses: 12 },
 ];
 
-export type Orden = "puntaje" | "precio_asc" | "precio_desc";
+export type Orden = "puntaje" | "precio_asc" | "precio_desc" | "recientes";
+
+/** Límites de los controles deslizantes */
+export const LIMITES_PUNTAJE: [number, number] = [70, 100];
+export const LIMITES_PRECIO: [number, number] = [0, 150000];
+
+/** Puntaje mínimo para la insignia "Verificado" */
+export const UMBRAL_VERIFICADO = 85;
+export const esVerificado = (d: Dataset) => d.calidad.total >= UMBRAL_VERIFICADO;
 
 export interface Filtros {
+  texto: string;
   sector: Sector | "todos";
-  comuna: string; // "todas" o el nombre
-  periodo: string; // "todos" o el valor del semestre
+  comuna: string; // "todas" o el nombre de la zona
+  periodo: string; // "todos" o "3" | "6" | "12"
+  puntaje: [number, number];
+  precio: [number, number];
   orden: Orden;
 }
 
 export const FILTROS_INICIALES: Filtros = {
+  texto: "",
   sector: "todos",
   comuna: "todas",
   periodo: "todos",
+  puntaje: LIMITES_PUNTAJE,
+  precio: LIMITES_PRECIO,
   orden: "puntaje",
 };
 
-/** Aplica filtros y orden al catálogo. */
-export function filtrarCatalogo(datasets: Dataset[], f: Filtros): Dataset[] {
+/** "AAAA-MM" de hace N meses contando desde el mes de `hoy` */
+export function mesHace(hoy: Date, meses: number): string {
+  const fecha = new Date(Date.UTC(hoy.getUTCFullYear(), hoy.getUTCMonth() - meses, 1));
+  return `${fecha.getUTCFullYear()}-${String(fecha.getUTCMonth() + 1).padStart(2, "0")}`;
+}
+
+/** Quita tildes y pasa a minúsculas para buscar sin importar cómo se escriba */
+const normalizar = (t: string) =>
+  t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+
+/** ¿El texto buscado aparece en el título, descripción, zona, sector o categorías? */
+function coincideTexto(d: Dataset, texto: string): boolean {
+  const buscado = normalizar(texto);
+  if (!buscado) return true;
+  const campos = [d.titulo, d.descripcion, d.comuna, NOMBRES_SECTOR[d.sector], ...d.filas.map((f) => f.categoria)];
+  return campos.some((c) => normalizar(c).includes(buscado));
+}
+
+/** Aplica todos los filtros combinados y el orden al catálogo. */
+export function filtrarCatalogo(datasets: Dataset[], f: Filtros, hoy: Date = new Date()): Dataset[] {
   const periodo = PERIODOS.find((p) => p.valor === f.periodo);
+  const desde = periodo ? mesHace(hoy, periodo.meses) : null;
   const resultado = datasets.filter((d) => {
     if (f.sector !== "todos" && d.sector !== f.sector) return false;
     if (f.comuna !== "todas" && d.comuna !== f.comuna) return false;
-    // El dataset entra si sus meses se cruzan con el semestre elegido
-    if (periodo && (d.periodo_fin < periodo.inicio || d.periodo_inicio > periodo.fin)) return false;
-    return true;
+    // Entra si tiene datos en los últimos N meses
+    if (desde && d.periodo_fin < desde) return false;
+    if (d.calidad.total < f.puntaje[0] || d.calidad.total > f.puntaje[1]) return false;
+    if (d.precio < f.precio[0] || d.precio > f.precio[1]) return false;
+    return coincideTexto(d, f.texto);
   });
   return resultado.sort((a, b) => {
     if (f.orden === "precio_asc") return a.precio - b.precio;
     if (f.orden === "precio_desc") return b.precio - a.precio;
+    if (f.orden === "recientes") return b.fecha_publicacion.localeCompare(a.fecha_publicacion);
     return b.calidad.total - a.calidad.total;
   });
 }

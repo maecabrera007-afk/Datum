@@ -32,7 +32,9 @@ function cuartil(ordenados: number[], q: number): number {
   const pos = (ordenados.length - 1) * q;
   const base = Math.floor(pos);
   const resto = pos - base;
-  return ordenados[base] + (ordenados[base + 1] - ordenados[base] || 0) * resto;
+  const bajo = ordenados[base] ?? 0;
+  const alto = ordenados[base + 1] ?? bajo;
+  return bajo + (alto - bajo) * resto;
 }
 
 /**

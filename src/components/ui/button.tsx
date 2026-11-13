@@ -15,6 +15,8 @@ const buttonVariants = cva(
         acento: "bg-accent text-accent-foreground hover:bg-accent/85",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline: "border border-foreground/15 bg-transparent hover:border-foreground",
+        // Borde claro para usar sobre fondos tinta
+        invertido: "border border-primary-foreground/25 bg-transparent text-primary-foreground hover:border-primary-foreground",
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/70",
         ghost: "hover:bg-secondary",
         link: "text-foreground underline underline-offset-4 decoration-foreground/30 hover:decoration-foreground rounded-none",

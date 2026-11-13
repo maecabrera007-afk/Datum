@@ -50,23 +50,23 @@ export function normalizarFecha(valor: string): string | null {
 
   // Año primero: 2026-03-15 o 2026/03/15 (puede traer hora después)
   let m = v.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);
-  if (m) return armarFecha(+m[1], +m[2], +m[3]);
+  if (m) return armarFecha(Number(m[1]), Number(m[2]), Number(m[3]));
 
   // Día primero: 15/03/2026, 15-03-26, 15.03.2026
   m = v.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})$/);
   if (m) {
-    let dia = +m[1];
-    let mes = +m[2];
+    let dia = Number(m[1]);
+    let mes = Number(m[2]);
     if (mes > 12 && dia <= 12) [dia, mes] = [mes, dia]; // venía mes/día
-    return armarFecha(+m[3], mes, dia);
+    return armarFecha(Number(m[3]), mes, dia);
   }
 
   // Con nombre del mes: 15 mar 2026, 15-mar-2026, 15 de marzo de 2026
   m = v.match(/^(\d{1,2})[\s\-/]*(?:de\s+)?([a-záéíóú]+)\.?[\s\-/]*(?:de\s+|del\s+)?(\d{2,4})$/);
   if (m) {
-    const mes = MESES[m[2].normalize("NFD").replace(/[\u0300-\u036f]/g, "").slice(0, 3)];
+    const mes = MESES[(m[2] ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").slice(0, 3)];
     if (!mes) return null;
-    return armarFecha(+m[3], mes, +m[1]);
+    return armarFecha(Number(m[3]), mes, Number(m[1]));
   }
   return null;
 }
@@ -92,7 +92,7 @@ export function convertirNumero(valor: string): number | null {
   } else if (tienePunto || tieneComa) {
     const sep = tienePunto ? "." : ",";
     const partes = s.split(sep);
-    const esMiles = partes.length > 2 || partes[partes.length - 1].length === 3;
+    const esMiles = partes.length > 2 || (partes[partes.length - 1] ?? "").length === 3;
     s = esMiles ? partes.join("") : partes.join(".");
   }
   const n = Number(s);

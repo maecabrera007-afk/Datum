@@ -40,9 +40,9 @@ export function registrar(datos: DatosRegistro): Resultado {
     correo,
     clave: datos.clave,
     rol: datos.rol,
-    negocio: datos.negocio?.trim(),
-    sector: datos.sector,
-    comuna: datos.comuna,
+    ...(datos.negocio?.trim() ? { negocio: datos.negocio.trim() } : {}),
+    ...(datos.sector ? { sector: datos.sector } : {}),
+    ...(datos.comuna ? { comuna: datos.comuna } : {}),
     creado: new Date().toISOString(),
   };
   guardar(CLAVES.usuarios, [...usuarios, usuario]);

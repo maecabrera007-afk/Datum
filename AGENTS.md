@@ -28,3 +28,7 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Project rules
+- Datum persists everything through `src/lib/datum/almacen.ts` (browser localStorage); read it via `useAlmacen` so SSR and first client render match.
+- Business logic lives in `src/lib/datum/*` as pure functions with tests next to them; routes only compose UI.
