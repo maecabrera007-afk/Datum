@@ -4,6 +4,7 @@
 import datasetsEjemplo from "@/data/datasets.json";
 import { CLAVES, guardar, leer } from "./almacen";
 import { NOMBRES_SECTOR, type Dataset, type EstadoDataset, type Sector } from "./tipos";
+import { buscarZona, CAPAS, zonaPorNombre, type Capa } from "./zonas";
 
 /** Los 16 datasets ficticios de ejemplo */
 export const EJEMPLOS = datasetsEjemplo as Dataset[];
@@ -122,4 +123,85 @@ export function guardarDatasetUsuario(dataset: Dataset): boolean {
 export function cambiarEstado(id: string, estado: EstadoDataset) {
   const lista = leerMisDatasets().map((d) => (d.id === id ? { ...d, estado } : d));
   guardar(CLAVES.misDatasets, lista);
+}
+
+// ---------------- Estado del catálogo en la dirección (URL) ----------------
+// Los filtros, la zona, el sector, la pestaña y la capa viven en la URL:
+// se mantienen al cambiar de pestaña, al ir al detalle de un dataset y volver.
+
+export type PestanaCatalogo = "datasets" | "mapa" | "oportunidades";
+const PESTANAS: PestanaCatalogo[] = ["datasets", "mapa", "oportunidades"];
+const ORDENES: Orden[] = ["puntaje", "precio_asc", "precio_desc", "recientes"];
+
+export interface BusquedaCatalogo {
+  pestana?: PestanaCatalogo;
+  /** id de la zona, ej. "laureles-estadio" */
+  zona?: string;
+  sector?: Sector;
+  texto?: string;
+  periodo?: string;
+  pmin?: number;
+  pmax?: number;
+  cmin?: number;
+  cmax?: number;
+  orden?: Orden;
+  capa?: Capa;
+}
+
+const esNumero = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
+
+/** Lee la URL y conserva solo los valores válidos */
+export function validarBusqueda(s: Record<string, unknown>): BusquedaCatalogo {
+  const r: BusquedaCatalogo = {};
+  const pestana = s["pestana"];
+  if (PESTANAS.includes(pestana as PestanaCatalogo)) r.pestana = pestana as PestanaCatalogo;
+  const zona = s["zona"];
+  if (typeof zona === "string" && buscarZona(zona)) r.zona = zona;
+  const sector = s["sector"];
+  if (typeof sector === "string" && sector in NOMBRES_SECTOR) r.sector = sector as Sector;
+  const texto = s["texto"];
+  if (typeof texto === "string" && texto) r.texto = texto.slice(0, 100);
+  const periodo = s["periodo"];
+  if (PERIODOS.some((p) => p.valor === String(periodo))) r.periodo = String(periodo);
+  for (const k of ["pmin", "pmax", "cmin", "cmax"] as const) {
+    const v = s[k];
+    if (esNumero(v)) r[k] = v;
+  }
+  const orden = s["orden"];
+  if (ORDENES.includes(orden as Orden)) r.orden = orden as Orden;
+  const capa = s["capa"];
+  if (CAPAS.some((c) => c.id === capa)) r.capa = capa as Capa;
+  return r;
+}
+
+const dentro = (v: number | undefined, [min, max]: [number, number], defecto: number) =>
+  v === undefined ? defecto : Math.max(min, Math.min(max, v));
+
+/** URL -> filtros de la pestaña Datasets */
+export function filtrosDesdeBusqueda(b: BusquedaCatalogo): Filtros {
+  return {
+    texto: b.texto ?? "",
+    sector: b.sector ?? "todos",
+    comuna: buscarZona(b.zona)?.nombre ?? "todas",
+    periodo: b.periodo ?? "todos",
+    puntaje: [dentro(b.pmin, LIMITES_PUNTAJE, LIMITES_PUNTAJE[0]), dentro(b.pmax, LIMITES_PUNTAJE, LIMITES_PUNTAJE[1])],
+    precio: [dentro(b.cmin, LIMITES_PRECIO, LIMITES_PRECIO[0]), dentro(b.cmax, LIMITES_PRECIO, LIMITES_PRECIO[1])],
+    orden: b.orden ?? "puntaje",
+  };
+}
+
+/** Filtros -> URL (sin los valores por defecto, para que quede corta) */
+export function busquedaDesdeFiltros(f: Filtros): BusquedaCatalogo {
+  const r: BusquedaCatalogo = {};
+  const zona = zonaPorNombre(f.comuna);
+  if (zona) r.zona = zona.id;
+  if (f.sector !== "todos") r.sector = f.sector;
+  if (f.texto) r.texto = f.texto;
+  if (f.periodo !== "todos") r.periodo = f.periodo;
+  if (f.puntaje[0] !== LIMITES_PUNTAJE[0]) r.pmin = f.puntaje[0];
+  if (f.puntaje[1] !== LIMITES_PUNTAJE[1]) r.pmax = f.puntaje[1];
+  if (f.precio[0] !== LIMITES_PRECIO[0]) r.cmin = f.precio[0];
+  if (f.precio[1] !== LIMITES_PRECIO[1]) r.cmax = f.precio[1];
+  if (f.orden !== "puntaje") r.orden = f.orden;
+  return r;
 }

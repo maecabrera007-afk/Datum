@@ -1,22 +1,28 @@
 // =============================================================
 //  Catálogo con 3 pestañas: Datasets, Mapa de zonas y Oportunidades
 // =============================================================
-import { createFileRoute } from "@tanstack/react-router";
-import { Info, Search, SlidersHorizontal } from "lucide-react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Info, Search, SlidersHorizontal, X } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
 
 import { EncabezadoPagina, EstadoVacio, Pagina, Selector } from "@/components/datum/comunes";
 import { TarjetaDataset } from "@/components/datum/dataset";
 import { PestanaMapa } from "@/components/datum/mapa";
+import { PestanaOportunidades } from "@/components/datum/oportunidades";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CLAVES, useAlmacen } from "@/lib/datum/almacen";
 import {
+  busquedaDesdeFiltros,
   catalogoVisible,
   FILTROS_INICIALES,
   filtrarCatalogo,
+  filtrosDesdeBusqueda,
+  validarBusqueda,
+  type BusquedaCatalogo,
+  type PestanaCatalogo,
   LIMITES_PRECIO,
   LIMITES_PUNTAJE,
   PERIODOS,
@@ -25,19 +31,29 @@ import {
 } from "@/lib/datum/catalogo";
 import { pesos } from "@/lib/datum/formato";
 import { NOMBRES_SECTOR, type Dataset } from "@/lib/datum/tipos";
-import { COMUNAS_ZONA, CORREGIMIENTOS, ZONAS, type Capa, type Zona } from "@/lib/datum/zonas";
+import {
+  COMUNAS_ZONA,
+  CORREGIMIENTOS,
+  SECTOR_A_TIPO,
+  TIPO_A_SECTOR,
+  zonaPorNombre,
+  type Capa,
+  type TipoNegocio,
+  type Zona,
+} from "@/lib/datum/zonas";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/catalogo/")({
+  validateSearch: (s: Record<string, unknown>): BusquedaCatalogo => validarBusqueda(s),
   head: () => ({
     meta: [
       { title: "Catálogo de datos de barrio — Datum" },
       {
         name: "description",
-        content: "Datasets anónimos de ventas de tiendas, restaurantes, cafés y panaderías de Medellín, con puntaje de calidad y precio transparente.",
+        content: "Datasets anónimos de ventas de tiendas, restaurantes, cafés y panaderías de Medellín, con mapa de zonas y oportunidades de negocio.",
       },
       { property: "og:title", content: "Catálogo de datos de barrio — Datum" },
-      { property: "og:description", content: "Busca y filtra por sector, zona, periodo, puntaje y precio. Datos ilustrativos de demostración." },
+      { property: "og:description", content: "Datasets, mapa de zonas y oportunidades por comuna. Datos ilustrativos de demostración." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -45,20 +61,55 @@ export const Route = createFileRoute("/catalogo/")({
   component: Catalogo,
 });
 
-type Pestana = "datasets" | "mapa" | "oportunidades";
-
 function Catalogo() {
-  const [pestana, setPestana] = useState<Pestana>("datasets");
-  const [filtros, setFiltros] = useState<Filtros>(FILTROS_INICIALES);
-  const [capa, setCapa] = useState<Capa>("afluencia");
+  const busqueda = Route.useSearch();
+  const navegar = useNavigate({ from: Route.fullPath });
   const misDatasets = useAlmacen<Dataset[]>(CLAVES.misDatasets, []);
 
+  const filtros = filtrosDesdeBusqueda(busqueda);
+  const pestana = busqueda.pestana ?? "datasets";
+  const capa = busqueda.capa ?? "afluencia";
+  const tipo = filtros.sector === "todos" ? null : SECTOR_A_TIPO[filtros.sector];
+
+  /** Cambia los filtros sin perder la pestaña ni la capa */
+  const setFiltros = (f: Filtros) =>
+    navegar({
+      search: (prev) => ({
+        ...busquedaDesdeFiltros(f),
+        ...(prev.pestana ? { pestana: prev.pestana } : {}),
+        ...(prev.capa ? { capa: prev.capa } : {}),
+      }),
+      replace: true,
+      resetScroll: false,
+    });
+  const setPestana = (p: PestanaCatalogo) => navegar({ search: (prev) => ({ ...prev, pestana: p }), replace: true, resetScroll: false });
+  const setCapa = (c: Capa) => navegar({ search: (prev) => ({ ...prev, capa: c }), replace: true, resetScroll: false });
+
   // La zona elegida en el mapa es la misma del filtro de zona de Datasets
-  const seleccionada = ZONAS.find((z) => z.nombre === filtros.comuna) ?? null;
+  const seleccionada = zonaPorNombre(filtros.comuna);
   const seleccionar = (z: Zona | null) => setFiltros({ ...filtros, comuna: z ? z.nombre : "todas" });
+  const setTipo = (t: TipoNegocio | null) => setFiltros({ ...filtros, sector: t ? TIPO_A_SECTOR[t] : "todos" });
   const datasetsEnZona = seleccionada
     ? catalogoVisible(misDatasets ?? []).filter((d) => d.comuna === seleccionada.nombre).length
     : 0;
+
+  /** "Ver datasets de esta zona": filtro aplicado y pestaña Datasets */
+  const verDatasetsDeZona = (z: Zona) => {
+    navegar({
+      search: (prev) => ({ ...busquedaDesdeFiltros({ ...filtrosDesdeBusqueda(prev), comuna: z.nombre }), pestana: "datasets", ...(prev.capa ? { capa: prev.capa } : {}) }),
+      resetScroll: false,
+    });
+    document.getElementById("pestanas-catalogo")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  /** "Ver en el mapa": selecciona la zona y abre la pestaña Mapa */
+  const verEnMapa = (z: Zona) => {
+    navegar({
+      search: (prev) => ({ ...busquedaDesdeFiltros({ ...filtrosDesdeBusqueda(prev), comuna: z.nombre }), pestana: "mapa", ...(prev.capa ? { capa: prev.capa } : {}) }),
+      resetScroll: false,
+    });
+    document.getElementById("pestanas-catalogo")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <Pagina>
@@ -68,12 +119,15 @@ function Catalogo() {
         descripcion="Ventas resumidas por mes y categoría, sin datos personales. Pagos simulados."
       />
 
-      <Tabs value={pestana} onValueChange={(v) => setPestana(v as Pestana)} className="mt-8">
-        <TabsList aria-label="Secciones del catálogo">
-          <TabsTrigger value="datasets">Datasets</TabsTrigger>
-          <TabsTrigger value="mapa">Mapa de zonas</TabsTrigger>
-          <TabsTrigger value="oportunidades">Oportunidades</TabsTrigger>
-        </TabsList>
+      <Tabs id="pestanas-catalogo" value={pestana} onValueChange={(v) => setPestana(v as PestanaCatalogo)} className="mt-8 scroll-mt-24">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <TabsList aria-label="Secciones del catálogo">
+            <TabsTrigger value="datasets">Datasets</TabsTrigger>
+            <TabsTrigger value="mapa">Mapa de zonas</TabsTrigger>
+            <TabsTrigger value="oportunidades">Oportunidades</TabsTrigger>
+          </TabsList>
+          <FiltrosCompartidos filtros={filtros} onQuitarZona={() => seleccionar(null)} onQuitarSector={() => setTipo(null)} />
+        </div>
 
         <TabsContent value="datasets" className="mt-8">
           <PestanaDatasets filtros={filtros} setFiltros={setFiltros} />
@@ -82,16 +136,57 @@ function Catalogo() {
           <PestanaMapa
             capa={capa}
             setCapa={setCapa}
+            tipo={tipo}
             seleccionada={seleccionada}
             onSeleccionar={seleccionar}
             datasetsEnZona={datasetsEnZona}
+            onVerDatasets={() => seleccionada && verDatasetsDeZona(seleccionada)}
           />
         </TabsContent>
         <TabsContent value="oportunidades" className="mt-8">
-          <EstadoVacio titulo="Oportunidades" texto="Esta pestaña llega en una fase posterior." />
+          <PestanaOportunidades
+            tipo={tipo}
+            setTipo={setTipo}
+            seleccionada={seleccionada}
+            onVerEnMapa={verEnMapa}
+            onVerDatasets={verDatasetsDeZona}
+          />
         </TabsContent>
       </Tabs>
     </Pagina>
+  );
+}
+
+/** Chips con la zona y el sector activos: se ven en las 3 pestañas */
+function FiltrosCompartidos({
+  filtros,
+  onQuitarZona,
+  onQuitarSector,
+}: {
+  filtros: Filtros;
+  onQuitarZona: () => void;
+  onQuitarSector: () => void;
+}) {
+  const chips = [
+    filtros.comuna !== "todas" && { texto: filtros.comuna, quitar: onQuitarZona, etiqueta: "zona" },
+    filtros.sector !== "todos" && { texto: NOMBRES_SECTOR[filtros.sector], quitar: onQuitarSector, etiqueta: "sector" },
+  ].filter(Boolean) as { texto: string; quitar: () => void; etiqueta: string }[];
+  if (chips.length === 0) return null;
+  return (
+    <ul className="flex flex-wrap gap-2" aria-label="Zona y sector activos en todas las pestañas">
+      {chips.map((c) => (
+        <li key={c.etiqueta}>
+          <button
+            type="button"
+            onClick={c.quitar}
+            className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-foreground bg-background px-3 py-1 text-xs font-medium hover:bg-secondary"
+            aria-label={`Quitar ${c.etiqueta}: ${c.texto}`}
+          >
+            <span className="text-muted-foreground">{c.etiqueta === "zona" ? "Zona" : "Sector"}:</span> {c.texto} <X className="size-3.5" aria-hidden />
+          </button>
+        </li>
+      ))}
+    </ul>
   );
 }
 
