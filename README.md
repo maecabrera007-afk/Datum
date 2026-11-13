@@ -5,7 +5,7 @@
 Datum limpia y organiza gratis los datos de tu negocio y, si quieres, los vende de forma anónima a quienes los necesitan.
 
 > Proyecto del reto de Prompt Engineering entre clanes · Riwi
-> Célula: [nombre de la célula] · Clan: [nombre del clan]
+> Célula: [Grock] · Clan: [Turing]
 
 ---
 
@@ -57,7 +57,7 @@ Los pequeños negocios de Medellín (tiendas de barrio, restaurantes, cafés y p
 
 Lovable se detuvo al iniciar Mi panel, así que el proyecto quedó hasta la Fase D.
 
-**Versión que se presenta:** [elegir una]
+**Versión que se presenta:** [3]
 - Proyecto 1: cuentas y datos guardados solo en el navegador.
 - Proyecto 2: Lovable Cloud, con cuentas reales.
 
@@ -85,7 +85,7 @@ Lo que falló en cada versión y cómo se ajustó el prompt está en la [bitáco
 
 ## Cómo probarlo
 
-1. Abre la aplicación: [enlace a la demo]
+1. Abre la aplicación: [https://archive-to-app-studio-74.lovable.app]
 2. Regístrate como **vendedor** y sube el archivo de ejemplo sucio de la app.
 3. Revisa la limpieza (antes y después), el puntaje y el tablero.
 4. Publica el dataset anonimizado.
@@ -105,20 +105,11 @@ Lo que falló en cada versión y cómo se ajustó el prompt está en la [bitáco
 
 ## Equipo
 
-| Integrante | Rol |
-|---|---|
-| [Nombre] | Prompts y bitácora |
-| [Nombre] | Pruebas y reporte de fallos |
-| [Nombre] | Repositorio y commits |
-| [Nombre] | Presentación |
+ Integrantes
+ 
+ [Sergio Arango Jaramillo ] 
+ [Miguel Echavarria Cabrera ] 
+ [Daniel Velez Arroyave ] 
 
-## Estructura del repositorio
 
-```
-datum/
-├── README.md
-├── .gitignore
-├── prompts/       prompts v1, v2, v3 y bitácora de pruebas
-├── docs/          guion de presentación, commits y capturas
-└── (código de la aplicación generado con Lovable)
-```
+
