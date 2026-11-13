@@ -1,0 +1,197 @@
+/*
+ * Tailwind v4 entry: config lives here, with no tailwind.config.js or PostCSS plugin.
+ * - Keep every @import in this top block. Fuentes remotas se cargan con <link> en __root.tsx.
+ */
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * ==========================================================
+ *  Sistema de diseño de Datum
+ *  Paleta definida como variables CSS en :root (ver abajo).
+ *  Los tokens de shadcn (--background, --primary, ...) apuntan
+ *  a esa paleta para que todos los componentes la usen.
+ * ==========================================================
+ */
+
+@theme inline {
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+
+  /* Colores de marca directos (por si se necesitan con nombre propio) */
+  --color-tinta: var(--tinta);
+  --color-hueso: var(--hueso);
+  --color-gris-claro: var(--gris-claro);
+  --color-gris-medio: var(--gris-medio);
+  --color-lima: var(--lima);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  /* ---- Paleta de Datum ---- */
+  --tinta: #0b0b0c; /* negro tinta: texto principal y fondos oscuros */
+  --hueso: #fafaf7; /* blanco hueso: fondo general */
+  --gris-claro: #e8e6e1; /* gris claro: bordes y superficies suaves */
+  --gris-medio: #6b6b6b; /* gris medio: texto secundario */
+  --lima: #c8ff3d; /* verde lima: ÚNICO acento, solo sobre negro o con texto negro */
+
+  --radius: 0.75rem;
+
+  /* ---- Tokens semánticos (shadcn) ---- */
+  --background: var(--hueso);
+  --foreground: var(--tinta);
+  --card: var(--hueso);
+  --card-foreground: var(--tinta);
+  --popover: var(--hueso);
+  --popover-foreground: var(--tinta);
+  --primary: var(--tinta);
+  --primary-foreground: var(--hueso);
+  --secondary: var(--gris-claro);
+  --secondary-foreground: var(--tinta);
+  --muted: var(--gris-claro);
+  --muted-foreground: var(--gris-medio);
+  --accent: var(--lima);
+  --accent-foreground: var(--tinta);
+  --destructive: oklch(0.55 0.2 27);
+  --destructive-foreground: var(--hueso);
+  --border: var(--gris-claro);
+  --input: var(--gris-claro);
+  --ring: var(--tinta);
+
+  /* Gráficas: tinta, lima y grises */
+  --chart-1: var(--tinta);
+  --chart-2: var(--lima);
+  --chart-3: var(--gris-medio);
+  --chart-4: var(--gris-claro);
+  --chart-5: oklch(0.4 0 0);
+
+  --sidebar: var(--hueso);
+  --sidebar-foreground: var(--tinta);
+  --sidebar-primary: var(--tinta);
+  --sidebar-primary-foreground: var(--hueso);
+  --sidebar-accent: var(--gris-claro);
+  --sidebar-accent-foreground: var(--tinta);
+  --sidebar-border: var(--gris-claro);
+  --sidebar-ring: var(--tinta);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  ::selection {
+    background: var(--lima);
+    color: var(--tinta);
+  }
+}
+
+/* Etiqueta pequeña en mayúsculas para encabezados de sección */
+@utility eyebrow {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gris-medio);
+}
+
+/* Números grandes en tipografía de títulos con cifras tabulares */
+@utility cifra {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+}
+
+/* Borde fino tipo "hairline" para tarjetas */
+@utility tarjeta {
+  border: 1px solid var(--gris-claro);
+  border-radius: var(--radius);
+  background: var(--hueso);
+}
+
+/* Cuadrícula sutil de fondo para la portada */
+@utility fondo-reticula {
+  background-image:
+    linear-gradient(to right, var(--gris-claro) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--gris-claro) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* Animación de aparición suave */
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility aparecer {
+  animation: aparecer 0.5s ease-out both;
+}
